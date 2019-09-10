@@ -24,11 +24,13 @@ class TdrClient {
       _tdlAttractionUrl,
       headers: _requestHeaders,
     );
-    List<dynamic> data = json.decode(res.body);
-    return data.map((x) {
+    List<Map<String, String>> result = [];
+    json.decode(res.body).forEach((x) {
       var entity = Map<String, String>();
-      return entity['name'] = x['FacilityName'];
-    }).toList();
+      entity['name'] = x['FacilityName'];
+      result.add(entity);
+    });
+    return result;
   }
 
   Future<List<Map<String, String>>> fetchTdsAttraction() async {
@@ -36,10 +38,12 @@ class TdrClient {
       _tdsAttractionUrl,
       headers: _requestHeaders,
     );
-    List<dynamic> data = json.decode(res.body);
-    return data.map((x) {
+    List<Map<String, String>> result = [];
+    json.decode(res.body).forEach((x) {
       var entity = Map<String, String>();
-      return entity['name'] = x['FacilityName'];
-    }).toList();
+      entity['name'] = x['FacilityName'];
+      result.add(entity);
+    });
+    return result;
   }
 }
