@@ -1,63 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:redux/redux.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'app_state.dart';
+import 'reducer.dart';
+import 'middleware.dart';
+import 'action.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+  final store = new Store<AppState>(
+    appReducer,
+    initialState: AppState.initial(),
+    middleware: [
+      fetchTdlAttractionListMiddleware,
+      fetchTdsAttractionListMiddleware,
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return StoreProvider(
+      store: store,
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primaryColor: Colors.blue,
+        ),
+        home: StoreConnector<AppState, bool>(
+          distinct: true,
+          onInit: (store) => store.dispatch(FetchTdlAttractionListAction),
+          builder: (context, _) {
+            return AttractionPage();
+          },
+          converter: (store) => true,
+        ),
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
+class AttractionPage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  createState() {
+    return AttractionState();
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
+class AttractionState extends State<AttractionPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+    return StoreConnector<AppState, _ViewModel> (
+      converter: (Store store) => _ViewModel.fromStore(store),
+      builder: (BuildContext context, _ViewModel vm) {
+        var list = vm.tdlAttractionList;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('title'),
+          ),
+          body: Center(
+            child: Text(list.toString()),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ViewModel {
+  final List<Map<String, String>> tdlAttractionList;
+  final List<Map<String, String>> tdsAttractionList;
+
+  _ViewModel({
+    @required this.tdlAttractionList,
+    @required this.tdsAttractionList,
+  });
+
+  static _ViewModel fromStore(Store<AppState> store) {
+    return new _ViewModel(
+      tdlAttractionList: store.state.tdlAttractionList,
+      tdsAttractionList: store.state.tdsAttractionList,
     );
   }
 }
